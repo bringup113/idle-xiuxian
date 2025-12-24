@@ -125,6 +125,19 @@ export const petStatConfig = {
     resistanceBoost: { min: 0.05, max: 0.1, isPercentage: true }
 }
 
+// 灵宠属性成长配置
+export const petGrowthConfig = {
+    levelFactor: 0.01, // 每级属性提升基础倍率
+    starFactor: 0.05,  // 每星资质和基础属性提升倍率
+    rarityMultipliers: {
+        divine: 2.0,
+        celestial: 1.8,
+        mystic: 1.6,
+        spiritual: 1.4,
+        mortal: 1.2
+    }
+}
+
 /**
  * 生成随机数值
  */

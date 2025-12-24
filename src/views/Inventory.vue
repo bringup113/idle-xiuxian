@@ -227,26 +227,26 @@
           <n-descriptions bordered :column="2">
             <n-descriptions-item label="力量">
               {{ selectedPet.quality?.strength || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetAptitudeRange(selectedPet.rarity) }})
+              <span v-if="getPetAptitudeRange(selectedPet)" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetAptitudeRange(selectedPet) }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="敏捷">
               {{ selectedPet.quality?.agility || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetAptitudeRange(selectedPet.rarity) }})
+              <span v-if="getPetAptitudeRange(selectedPet)" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetAptitudeRange(selectedPet) }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="智力">
               {{ selectedPet.quality?.intelligence || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetAptitudeRange(selectedPet.rarity) }})
+              <span v-if="getPetAptitudeRange(selectedPet)" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetAptitudeRange(selectedPet) }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="体质">
               {{ selectedPet.quality?.constitution || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetAptitudeRange(selectedPet.rarity) }})
+              <span v-if="getPetAptitudeRange(selectedPet)" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetAptitudeRange(selectedPet) }})
               </span>
             </n-descriptions-item>
           </n-descriptions>
@@ -254,26 +254,26 @@
           <n-descriptions bordered :column="2">
             <n-descriptions-item label="攻击力">
               {{ selectedPet.combatAttributes?.attack || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetStatRange(selectedPet.rarity, 'attack') }})
+              <span v-if="getPetStatRange(selectedPet, 'attack')" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetStatRange(selectedPet, 'attack') }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="生命值">
               {{ selectedPet.combatAttributes?.health || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetStatRange(selectedPet.rarity, 'health') }})
+              <span v-if="getPetStatRange(selectedPet, 'health')" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetStatRange(selectedPet, 'health') }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="防御力">
               {{ selectedPet.combatAttributes?.defense || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetStatRange(selectedPet.rarity, 'defense') }})
+              <span v-if="getPetStatRange(selectedPet, 'defense')" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetStatRange(selectedPet, 'defense') }})
               </span>
             </n-descriptions-item>
             <n-descriptions-item label="速度">
               {{ selectedPet.combatAttributes?.speed || 0 }}
-              <span style="font-size: 11px; color: #999; margin-left: 4px;">
-                ({{ getPetStatRange(selectedPet.rarity, 'speed') }})
+              <span v-if="getPetStatRange(selectedPet, 'speed')" style="font-size: 11px; color: #999; margin-left: 4px;">
+                ({{ getPetStatRange(selectedPet, 'speed') }})
               </span>
             </n-descriptions-item>
           </n-descriptions>
@@ -281,85 +281,85 @@
           <n-descriptions bordered :column="3">
             <n-descriptions-item label="暴击率">
               {{ ((selectedPet.combatAttributes?.critRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'critRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'critRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'critRate') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="连击率">
               {{ ((selectedPet.combatAttributes?.comboRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'comboRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'comboRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'comboRate') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="反击率">
               {{ ((selectedPet.combatAttributes?.counterRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'counterRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'counterRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'counterRate') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="眩晕率">
               {{ ((selectedPet.combatAttributes?.stunRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'stunRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'stunRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'stunRate') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="闪避率">
               {{ ((selectedPet.combatAttributes?.dodgeRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'dodgeRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'dodgeRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'dodgeRate') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="吸血率">
               {{ ((selectedPet.combatAttributes?.vampireRate || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'vampireRate') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'vampireRate')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'vampireRate') }})</div>
             </n-descriptions-item>
           </n-descriptions>
           <n-divider>战斗抗性</n-divider>
           <n-descriptions bordered :column="3">
             <n-descriptions-item label="抗暴击">
               {{ ((selectedPet.combatAttributes?.critResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'critResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'critResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'critResist') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="抗连击">
               {{ ((selectedPet.combatAttributes?.comboResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'comboResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'comboResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'comboResist') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="抗反击">
               {{ ((selectedPet.combatAttributes?.counterResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'counterResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'counterResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'counterResist') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="抗眩晕">
               {{ ((selectedPet.combatAttributes?.stunResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'stunResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'stunResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'stunResist') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="抗闪避">
               {{ ((selectedPet.combatAttributes?.dodgeResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'dodgeResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'dodgeResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'dodgeResist') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="抗吸血">
               {{ ((selectedPet.combatAttributes?.vampireResist || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'vampireResist') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'vampireResist')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'vampireResist') }})</div>
             </n-descriptions-item>
           </n-descriptions>
           <n-divider>特殊属性</n-divider>
           <n-descriptions bordered :column="3">
             <n-descriptions-item label="强化治疗">
               {{ ((selectedPet.combatAttributes?.healBoost || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'healBoost') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'healBoost')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'healBoost') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="强化爆伤">
               {{ ((selectedPet.combatAttributes?.critDamageBoost || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'critDamageBoost') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'critDamageBoost')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'critDamageBoost') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="弱化爆伤">
               {{ ((selectedPet.combatAttributes?.critDamageReduce || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'critDamageReduce') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'critDamageReduce')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'critDamageReduce') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="最终增伤">
               {{ ((selectedPet.combatAttributes?.finalDamageBoost || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'finalDamageBoost') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'finalDamageBoost')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'finalDamageBoost') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="最终减伤">
               {{ ((selectedPet.combatAttributes?.finalDamageReduce || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'finalDamageReduce') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'finalDamageReduce')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'finalDamageReduce') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="战斗属性提升">
               {{ ((selectedPet.combatAttributes?.combatBoost || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'combatBoost') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'combatBoost')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'combatBoost') }})</div>
             </n-descriptions-item>
             <n-descriptions-item label="战斗抗性提升">
               {{ ((selectedPet.combatAttributes?.resistanceBoost || 0) * 100).toFixed(1) }}%
-              <div style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet.rarity, 'resistanceBoost') }})</div>
+              <div v-if="getPetStatRange(selectedPet, 'resistanceBoost')" style="font-size: 11px; color: #999;">({{ getPetStatRange(selectedPet, 'resistanceBoost') }})</div>
             </n-descriptions-item>
           </n-descriptions>
         </n-collapse-item>
@@ -582,7 +582,7 @@
   import { getRealmName } from '../plugins/realm'
   import { pillRecipes, pillGrades, pillTypes, calculatePillEffect } from '../plugins/pills'
   import { enhanceEquipment, reforgeEquipment, equipmentBaseStats, equipmentQualities } from '../plugins/equipment'
-  import { petRarities, getRarityMultiplier, petStatConfig } from '../plugins/pets'
+  import { petRarities, getRarityMultiplier, petStatConfig, petGrowthConfig } from '../plugins/pets'
 
   // 分页相关
   const currentPage = ref(1)
@@ -642,11 +642,14 @@
    */
   const getStatRange = (equipment, statName) => {
     if (!equipment || !equipment.type || !equipment.quality) return null
+    // 只有在未强过的初始状态下才显示区间参考
+    if (equipment.enhanceLevel && equipment.enhanceLevel > 0) return null
+    
     const config = equipmentBaseStats[equipment.type]?.[statName]
     const qualityInfo = equipmentQualities[equipment.quality]
     if (!config || !qualityInfo) return null
 
-    const levelMod = 1 + equipment.level * 0.1
+    const levelMod = 1 + (equipment.level || 1) * 0.1
     const minVal = config.min * qualityInfo.statMod * levelMod
     const maxVal = config.max * qualityInfo.statMod * levelMod
 
@@ -662,17 +665,26 @@
   /**
    * 获取灵宠基础属性(资质)的理论区间
    */
-  const getPetAptitudeRange = rarity => {
-    const multiplier = getRarityMultiplier(rarity)
+  const getPetAptitudeRange = pet => {
+    if (!pet) return null
+    // 只有在没有星级提升的初始状态下才显示资质区间
+    if (pet.star > 0) return null
+    
+    const multiplier = getRarityMultiplier(pet.rarity)
     if (!multiplier) return null
+    
     return `${multiplier.aptitude.min} - ${multiplier.aptitude.max}`
   }
 
   /**
    * 获取灵宠战斗属性的理论区间
    */
-  const getPetStatRange = (rarity, statName) => {
-    const multiplier = getRarityMultiplier(rarity)
+  const getPetStatRange = (pet, statName) => {
+    if (!pet) return null
+    // 只有在 1 级且没有升星的初始状态下才显示属性区间
+    if ((pet.level && pet.level > 1) || (pet.star && pet.star > 0)) return null
+    
+    const multiplier = getRarityMultiplier(pet.rarity)
     const config = petStatConfig[statName]
     if (!multiplier || !config) return null
 
