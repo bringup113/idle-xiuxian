@@ -163,7 +163,7 @@
 <script setup>
   import { useRouter, useRoute } from 'vue-router'
   import { usePlayerStore } from './stores/player'
-  import { h, ref } from 'vue'
+  import { h, ref, computed, watch, onMounted } from 'vue'
   import { NIcon, darkTheme } from 'naive-ui'
   import {
     BookOutlined,
@@ -185,93 +185,85 @@
   const route = useRoute()
   const playerStore = usePlayerStore()
   const spiritWorker = ref(null)
-  const menuOptions = ref([])
-  const isNewPlayer = ref(false)
-  const isLoading = ref(true) // 添加加载状态
+  
+  const isLoading = ref(true)
+  const baseGainRate = 1
 
   // 初始化数据加载
   playerStore.initializePlayer().then(() => {
     isLoading.value = false
-    getMenuOptions()
   })
 
-  // 监听玩家状态
+  // 监听玩家状态同步跳转
   watch(
     () => playerStore.isNewPlayer,
     bool => {
-      isNewPlayer.value = bool
       if (!bool && route.path === '/') {
         router.push('/cultivation')
       }
     }
   )
 
-  // 灵力获取相关配置
-  const baseGainRate = 1 // 基础灵力获取率
-
-  const getMenuOptions = () => {
-    menuOptions.value = [
-      ,
-      ...(isNewPlayer.value
-        ? [
-            {
-              label: '欢迎',
-              key: '',
-              icon: renderIcon(HomeOutlined)
-            }
-          ]
-        : []),
-      {
-        label: '修炼',
-        key: 'cultivation',
-        icon: renderIcon(BookOutlined)
-      },
-      {
-        label: '背包',
-        key: 'inventory',
-        icon: renderIcon(ExperimentOutlined)
-      },
-      {
-        label: '抽奖',
-        key: 'gacha',
-        icon: renderIcon(GiftOutlined)
-      },
-      {
-        label: '炼丹',
-        key: 'alchemy',
-        icon: renderIcon(MedicineBoxOutlined)
-      },
-      {
-        label: '探索',
-        key: 'exploration',
-        icon: renderIcon(CompassOutlined)
-      },
-      {
-        label: '秘境',
-        key: 'dungeon',
-        icon: renderIcon(Flash)
-      },
-      {
-        label: '成就',
-        key: 'achievements',
-        icon: renderIcon(TrophyOutlined)
-      },
-      {
-        label: '设置',
-        key: 'settings',
-        icon: renderIcon(SettingOutlined)
-      },
-      ...(playerStore.isGMMode
-        ? [
-            {
-              label: 'GM调试',
-              key: 'gm',
-              icon: renderIcon(SmileOutlined)
-            }
-          ]
-        : [])
-    ]
-  }
+  const menuOptions = computed(() => [
+    ...(playerStore.isNewPlayer
+      ? [
+          {
+            label: '欢迎',
+            key: '',
+            icon: renderIcon(HomeOutlined)
+          }
+        ]
+      : []),
+    {
+      label: '修炼',
+      key: 'cultivation',
+      icon: renderIcon(BookOutlined)
+    },
+    {
+      label: '背包',
+      key: 'inventory',
+      icon: renderIcon(ExperimentOutlined)
+    },
+    {
+      label: '抽奖',
+      key: 'gacha',
+      icon: renderIcon(GiftOutlined)
+    },
+    {
+      label: '炼丹',
+      key: 'alchemy',
+      icon: renderIcon(MedicineBoxOutlined)
+    },
+    {
+      label: '探索',
+      key: 'exploration',
+      icon: renderIcon(CompassOutlined)
+    },
+    {
+      label: '秘境',
+      key: 'dungeon',
+      icon: renderIcon(Flash)
+    },
+    {
+      label: '成就',
+      key: 'achievements',
+      icon: renderIcon(TrophyOutlined)
+    },
+    {
+      label: '设置',
+      key: 'settings',
+      icon: renderIcon(SettingOutlined)
+    },
+    ...(playerStore.isGMMode
+      ? [
+          {
+            label: 'GM调试',
+            key: 'gm',
+            icon: renderIcon(SmileOutlined)
+          }
+        ]
+      : [])
+  ])
   // 自动获取灵力
   const startAutoGain = () => {
     if (spiritWorker.value) return

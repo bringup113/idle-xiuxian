@@ -69,29 +69,35 @@
               </n-grid>
             </n-form>
 
-            <n-divider title-placement="left">战斗机率属性</n-divider>
+            <n-divider title-placement="left">战斗机率属性 (单位: %)</n-divider>
             <n-form label-placement="left" label-width="100">
               <n-grid :cols="3" :x-gap="12">
                 <n-form-item-gi v-for="(val, key) in playerStore.combatAttributes" :key="key" :label="statNameMapping[key] || key">
-                  <n-input-number v-model:value="combatStats.combatAttributes[key]" :min="0" :max="1" :step="0.01" />
+                  <n-input-number v-model:value="combatStats.combatAttributes[key]" :min="0" :step="1" :precision="1">
+                    <template #suffix>%</template>
+                  </n-input-number>
                 </n-form-item-gi>
               </n-grid>
             </n-form>
 
-            <n-divider title-placement="left">战斗抗性</n-divider>
+            <n-divider title-placement="left">战斗抗性 (单位: %)</n-divider>
             <n-form label-placement="left" label-width="100">
               <n-grid :cols="3" :x-gap="12">
                 <n-form-item-gi v-for="(val, key) in playerStore.combatResistance" :key="key" :label="statNameMapping[key] || key">
-                  <n-input-number v-model:value="combatStats.combatResistance[key]" :min="0" :max="1" :step="0.01" />
+                  <n-input-number v-model:value="combatStats.combatResistance[key]" :min="0" :step="1" :precision="1">
+                    <template #suffix>%</template>
+                  </n-input-number>
                 </n-form-item-gi>
               </n-grid>
             </n-form>
 
-            <n-divider title-placement="left">特殊属性</n-divider>
+            <n-divider title-placement="left">特殊属性 (单位: %)</n-divider>
             <n-form label-placement="left" label-width="100">
               <n-grid :cols="3" :x-gap="12">
                 <n-form-item-gi v-for="(val, key) in playerStore.specialAttributes" :key="key" :label="statNameMapping[key] || key">
-                  <n-input-number v-model:value="combatStats.specialAttributes[key]" :min="0" :step="0.01" />
+                  <n-input-number v-model:value="combatStats.specialAttributes[key]" :min="0" :step="1" :precision="1">
+                    <template #suffix>%</template>
+                  </n-input-number>
                 </n-form-item-gi>
               </n-grid>
             </n-form>
@@ -119,7 +125,7 @@
 
               <n-divider title-placement="left">属性增强</n-divider>
               <n-space>
-                <n-button type="error" @click="superStats">超级属性 (全属性+999% / 基础属性10万)</n-button>
+                <n-button type="error" @click="superStats">超级属性 (全属性+500% / 基础属性10万)</n-button>
               </n-space>
             </n-space>
           </n-card>
@@ -165,12 +171,18 @@
     petEssence: playerStore.petEssence
   })
 
-  // 战斗属性编辑
+  // 战斗属性编辑 (存入时进行单位转换：1.0 到 100.0)
   const combatStats = reactive({
     baseAttributes: { ...playerStore.baseAttributes },
-    combatAttributes: { ...playerStore.combatAttributes },
-    combatResistance: { ...playerStore.combatResistance },
-    specialAttributes: { ...playerStore.specialAttributes }
+    combatAttributes: Object.fromEntries(
+      Object.entries(playerStore.combatAttributes).map(([k, v]) => [k, Number((v * 100).toFixed(1))])
+    ),
+    combatResistance: Object.fromEntries(
+      Object.entries(playerStore.combatResistance).map(([k, v]) => [k, Number((v * 100).toFixed(1))])
+    ),
+    specialAttributes: Object.fromEntries(
+      Object.entries(playerStore.specialAttributes).map(([k, v]) => [k, Number((v * 100).toFixed(1))])
+    )
   })
 
   // 更新玩家属性
@@ -181,11 +193,16 @@
         playerStore[key] = value
       })
 
-      // 更新战斗相关属性
+      // 更新战斗相关属性 (保存时转换回比例：100.0 到 1.0)
       playerStore.baseAttributes = { ...combatStats.baseAttributes }
-      playerStore.combatAttributes = { ...combatStats.combatAttributes }
-      playerStore.combatResistance = { ...combatStats.combatResistance }
-      playerStore.specialAttributes = { ...combatStats.specialAttributes }
+      
+      const toRatio = obj => Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k, Number((v / 100).toFixed(4))])
+      )
+      
+      playerStore.combatAttributes = toRatio(combatStats.combatAttributes)
+      playerStore.combatResistance = toRatio(combatStats.combatResistance)
+      playerStore.specialAttributes = toRatio(combatStats.specialAttributes)
 
       // 保存数据
       playerStore.saveData()
@@ -243,24 +260,24 @@
       playerStore.baseAttributes[key] = 100000
       combatStats.baseAttributes[key] = 100000
     })
-    // 概率属性
+    // 概率属性 (设为 500%)
     Object.keys(playerStore.combatAttributes).forEach(key => {
-      playerStore.combatAttributes[key] = 0.99
-      combatStats.combatAttributes[key] = 0.99
+      playerStore.combatAttributes[key] = 5.0
+      combatStats.combatAttributes[key] = 500.0
     })
     // 抗性属性
     Object.keys(playerStore.combatResistance).forEach(key => {
-      playerStore.combatResistance[key] = 0.99
-      combatStats.combatResistance[key] = 0.99
+      playerStore.combatResistance[key] = 5.0
+      combatStats.combatResistance[key] = 500.0
     })
     // 特殊属性
     Object.keys(playerStore.specialAttributes).forEach(key => {
-      playerStore.specialAttributes[key] = 9.99
-      combatStats.specialAttributes[key] = 9.99
+      playerStore.specialAttributes[key] = 5.0
+      combatStats.specialAttributes[key] = 500.0
     })
     
     playerStore.saveData()
-    message.success('超级属性已激活')
+    message.success('超级属性已激活 (500%)')
   }
 
   // 重置玩家数据
@@ -289,11 +306,15 @@
         petEssence: playerStore.petEssence
       })
       
+      const toPercent = obj => Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k, Number((v * 100).toFixed(1))])
+      )
+
       Object.assign(combatStats, {
         baseAttributes: { ...playerStore.baseAttributes },
-        combatAttributes: { ...playerStore.combatAttributes },
-        combatResistance: { ...playerStore.combatResistance },
-        specialAttributes: { ...playerStore.specialAttributes }
+        combatAttributes: toPercent(playerStore.combatAttributes),
+        combatResistance: toPercent(playerStore.combatResistance),
+        specialAttributes: toPercent(playerStore.specialAttributes)
       })
     } catch (error) {
       message.error('重置失败：' + error.message)
