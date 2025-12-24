@@ -1,6 +1,6 @@
 <template>
   <n-config-provider :theme="playerStore.isDarkMode ? darkTheme : null">
-    <n-message-provider>
+    <n-message-provider placement="top-right">
       <n-dialog-provider>
         <n-spin :show="isLoading" description="正在加载游戏数据...">
           <n-layout>
