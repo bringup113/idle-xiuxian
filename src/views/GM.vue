@@ -168,10 +168,17 @@
 
               <n-divider title-placement="left">快捷生成 (高品质)</n-divider>
               <n-space>
-                <n-button type="error" @click="addMythicGear">获取随机仙品装备</n-button>
-                <n-button type="error" @click="addPerfectGear">获取随机顶级仙品</n-button>
-                <n-button type="error" @click="addDivinePet">获取随机神品灵宠</n-button>
-                <n-button type="error" @click="addPerfectPet">获取顶级神品灵宠</n-button>
+                <n-button type="error" @click="addPerfectGear">获取全套顶级仙品装备</n-button>
+                <n-divider vertical />
+                <n-form inline :show-feedback="false" label-placement="left">
+                  <n-form-item label="选择神宠">
+                    <n-select v-model:value="selectedPetName" :options="divinePetOptions" style="width: 150px" />
+                  </n-form-item>
+                  <n-form-item label="数量">
+                    <n-input-number v-model:value="petQuantity" :min="1" :max="100" style="width: 100px" />
+                  </n-form-item>
+                  <n-button type="error" @click="addPerfectPet">获取指定顶级神宠</n-button>
+                </n-form>
               </n-space>
             </n-space>
           </n-card>
@@ -196,8 +203,8 @@
   import { getRealmName, getRealmLength } from '../plugins/realm'
   import { herbs, herbQualities, getHerbValue } from '../plugins/herbs'
   import { pillRecipes, calculatePillEffect } from '../plugins/pills'
-  import { generateEquipment } from '../plugins/equipment'
-  import { generatePet } from '../plugins/pets'
+  import { generateEquipment, equipmentTypes } from '../plugins/equipment'
+  import { generatePet, petPool } from '../plugins/pets'
 
   const playerStore = usePlayerStore()
   const message = useMessage()
@@ -241,6 +248,10 @@
   const herbCount = ref(1)
   const selectedPillId = ref(pillRecipes[0].id)
   const pillCount = ref(1)
+  const selectedPetName = ref(petPool.divine[0].name)
+  const petQuantity = ref(1)
+
+  const divinePetOptions = petPool.divine.map(p => ({ label: p.name, value: p.name }))
 
   const herbOptions = herbs.map(h => ({ label: h.name, value: h.id }))
   const herbQualityOptions = Object.entries(herbQualities).map(([key, val]) => ({
@@ -340,12 +351,14 @@
   }
 
   const addPerfectGear = () => {
-    // 生成满属性装备
-    const gear = generateEquipment(playerStore.level, null, 'mythic', true)
+    // 遍历所有装备部位生成满属性装备
+    Object.keys(equipmentTypes).forEach(type => {
+      const gear = generateEquipment(playerStore.level, type, 'mythic', true)
+      playerStore.items.push(gear)
+    })
     
-    playerStore.items.push(gear)
     playerStore.saveData()
-    message.success('已获得满属性顶级仙品装备')
+    message.success('已获得全套满属性顶级仙品装备')
   }
 
   const addDivinePet = () => {
@@ -357,11 +370,13 @@
   }
 
   const addPerfectPet = () => {
-    // 生成满属性灵宠
-    const pet = generatePet('divine', true)
-    playerStore.items.push(pet)
+    // 生成指定数量的满属性灵宠
+    for (let i = 0; i < petQuantity.value; i++) {
+        const pet = generatePet('divine', true, selectedPetName.value)
+        playerStore.items.push(pet)
+    }
     playerStore.saveData()
-    message.success('已获得满属性顶级神品灵宠')
+    message.success(`已获得 ${petQuantity.value} 个顶级神品灵宠：${selectedPetName.value}`)
   }
 
   // 快捷操作

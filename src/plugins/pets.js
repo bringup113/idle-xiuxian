@@ -150,12 +150,19 @@ const generateValue = (min, max, isMax, isPercentage) => {
  * 核心灵宠生成函数
  * @param {string} rarity 品质
  * @param {boolean} isMaxStat 是否生成满属性
+ * @param {string} specificName 指定灵宠名称 (可选)
  * @returns {object} 灵宠对象
  */
-export const generatePet = (rarity, isMaxStat = false) => {
+export const generatePet = (rarity, isMaxStat = false, specificName = null) => {
     const multiplier = getRarityMultiplier(rarity)
     const pool = petPool[rarity]
-    const petBase = pool[Math.floor(Math.random() * pool.length)]
+    let petBase
+
+    if (specificName) {
+        petBase = pool.find(p => p.name === specificName) || pool[Math.floor(Math.random() * pool.length)]
+    } else {
+        petBase = pool[Math.floor(Math.random() * pool.length)]
+    }
 
     // 1. 计算资质 (力量, 敏捷, 智力, 体质)
     const aptConfig = multiplier.aptitude

@@ -9,6 +9,32 @@
       <n-card :bordered="false">
         <n-tabs type="line">
           <n-tab-pane name="equipment" tab="装备">
+            <n-space style="margin-bottom: 16px">
+              <n-select
+                v-model:value="selectedQualityToSellAll"
+                :options="allQualityOptions"
+                placeholder="选择卖出品质"
+                style="width: 150px"
+              />
+              <n-button
+                type="warning"
+                @click="showBatchSellAllConfirm = true"
+                :disabled="!playerStore.items.some(item => !['pill', 'pet'].includes(item.type))"
+              >
+                一键卖出所有部位
+              </n-button>
+            </n-space>
+            <n-modal v-model:show="showBatchSellAllConfirm" preset="dialog" title="一键卖出确认" style="width: 600px">
+              <p>
+                确定要卖出{{
+                  selectedQualityToSellAll === 'all' ? '所有' : equipmentQualities[selectedQualityToSellAll].name
+                }}品质的未装备装备吗？此操作不可撤销。
+              </p>
+              <n-space justify="end" style="margin-top: 16px">
+                <n-button size="small" @click="showBatchSellAllConfirm = false">取消</n-button>
+                <n-button size="small" type="error" @click="batchSellAllEquipments">确认卖出</n-button>
+              </n-space>
+            </n-modal>
             <n-grid :cols="2" :x-gap="12" :y-gap="8">
               <n-grid-item v-for="(name, type) in equipmentTypes" :key="type">
                 <n-card hoverable @click="showEquipmentList(type)">
@@ -142,6 +168,9 @@
                 :disabled="!playerStore.items.filter(item => item.type === 'pet').length"
               >
                 一键放生
+              </n-button>
+              <n-button type="primary" @click="autoBatchEvolvePets">
+                一键合成
               </n-button>
             </n-space>
             <n-modal v-model:show="showBatchReleaseConfirm" preset="dialog" title="批量放生确认" style="width: 600px">
@@ -577,8 +606,8 @@
 <script setup>
   import { usePlayerStore } from '../stores/player'
   import { ref, computed } from 'vue'
-  import { useMessage } from 'naive-ui'
-  import { getStatName, formatStatValue } from '../plugins/stats'
+  import { useMessage, useDialog } from 'naive-ui'
+  import { getStatName, formatStatValue, percentageStats } from '../plugins/stats'
   import { getRealmName } from '../plugins/realm'
   import { pillRecipes, pillGrades, pillTypes, calculatePillEffect } from '../plugins/pills'
   import { enhanceEquipment, reforgeEquipment, equipmentBaseStats, equipmentQualities } from '../plugins/equipment'
@@ -612,6 +641,7 @@
 
   const playerStore = usePlayerStore()
   const message = useMessage()
+  const dialog = useDialog()
 
   // 使用丹药
   const usePill = pill => {
@@ -628,6 +658,31 @@
   const showPetModal = ref(false)
   const selectedPet = ref(null)
   const selectedFoodPet = ref(null)
+
+  // 一键卖出所有部位相关
+  const showBatchSellAllConfirm = ref(false)
+  const selectedQualityToSellAll = ref('all')
+
+  const allQualityOptions = [
+    { label: '全部品质', value: 'all' },
+    { label: '仙品', value: 'mythic' },
+    { label: '极品', value: 'legendary' },
+    { label: '上品', value: 'epic' },
+    { label: '中品', value: 'rare' },
+    { label: '下品', value: 'uncommon' },
+    { label: '凡品', value: 'common' }
+  ]
+
+  const batchSellAllEquipments = async () => {
+    const quality = selectedQualityToSellAll.value === 'all' ? null : selectedQualityToSellAll.value
+    const result = await playerStore.batchSellEquipments(quality, null)
+    if (result.success) {
+      message.success(result.message)
+      showBatchSellAllConfirm.value = false
+    } else {
+      message.error(result.message || '批量卖出失败')
+    }
+  }
 
   // 放生确认弹窗
   const showReleaseConfirm = ref(false)
@@ -653,10 +708,8 @@
     const minVal = config.min * qualityInfo.statMod * levelMod
     const maxVal = config.max * qualityInfo.statMod * levelMod
 
-    const isPercent = ['critRate', 'critDamageBoost', 'dodgeRate', 'vampireRate', 'finalDamageBoost', 'finalDamageReduce'].includes(statName)
-    
-    if (isPercent) {
-      return `${(minVal / 1).toFixed(2)}% - ${(maxVal / 1).toFixed(2)}%`
+    if (percentageStats.includes(statName)) {
+      return `${(minVal * 100).toFixed(2)}% - ${(maxVal * 100).toFixed(2)}%`
     } else {
       return `${Math.round(minVal)} - ${Math.round(maxVal)}`
     }
@@ -849,6 +902,24 @@
     } else {
       message.error(result.message)
     }
+  }
+
+  // 一键合成灵宠
+  const autoBatchEvolvePets = () => {
+    dialog.warning({
+      title: '一键合成',
+      content: '是否一键合成背包中所有相同名称、相同品质且相同星级的灵宠？系统将优先保留等级较高的灵宠作为主体。',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: () => {
+        const result = playerStore.batchEvolvePets()
+        if (result.success) {
+          message.success(result.message)
+        } else {
+          message.warning(result.message)
+        }
+      }
+    })
   }
 
   // 装备类型配置

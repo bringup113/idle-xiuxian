@@ -1,4 +1,5 @@
 // 装备强化和洗练相关配置
+import { percentageStats } from './stats'
 
 // 强化等级配置
 const enhanceConfig = {
@@ -65,12 +66,8 @@ function enhanceEquipment(equipment, playerReinforceStones) {
     if (typeof equipment.stats[stat] === 'number') {
       equipment.stats[stat] *= 1 + enhanceConfig.statIncrease
       // 对百分比属性进行特殊处理
-      if (
-        ['critRate', 'critDamageBoost', 'dodgeRate', 'vampireRate', 'finalDamageBoost', 'finalDamageReduce'].includes(
-          stat
-        )
-      ) {
-        equipment.stats[stat] = Math.round(equipment.stats[stat] * 100) / 100
+      if (percentageStats.includes(stat)) {
+        equipment.stats[stat] = Number(equipment.stats[stat].toFixed(4))
       } else {
         equipment.stats[stat] = Math.round(equipment.stats[stat])
       }
@@ -124,12 +121,8 @@ function reforgeEquipment(equipment, playerSpiritStones, confirmNewStats = true)
     const delta = Math.random() * 0.6 - 0.3 // [-0.3, 0.3]
     const newValue = baseValue * (1 + delta)
     // 根据属性类型处理数值精度
-    if (
-      ['critRate', 'critDamageBoost', 'dodgeRate', 'vampireRate', 'finalDamageBoost', 'finalDamageReduce'].includes(
-        currentStat
-      )
-    ) {
-      tempStats[currentStat] = Math.min(Math.max(Number(newValue.toFixed(2)), baseValue * 0.7), baseValue * 1.3)
+    if (percentageStats.includes(currentStat)) {
+      tempStats[currentStat] = Number(Math.min(Math.max(newValue, baseValue * 0.7), baseValue * 1.3).toFixed(4))
     } else {
       tempStats[currentStat] = Math.min(
         Math.max(Math.round(newValue), Math.round(baseValue * 0.7)),
@@ -332,12 +325,8 @@ function generateEquipment(level, type = null, quality = null, isMax = false) {
     const base = isMax ? config.max : (config.min + Math.random() * (config.max - config.min))
     const value = base * qualityMod * levelMod
     // 对百分比属性进行特殊处理
-    if (
-      ['critRate', 'critDamageBoost', 'dodgeRate', 'vampireRate', 'finalDamageBoost', 'finalDamageReduce'].includes(
-        stat
-      )
-    ) {
-      baseStats[stat] = Math.round(value * 1) / 100 // 保留两位小数
+    if (percentageStats.includes(stat)) {
+      baseStats[stat] = Number(value.toFixed(4))
     } else {
       baseStats[stat] = Math.round(value)
     }

@@ -858,6 +858,65 @@ export const usePlayerStore = defineStore('player', {
         return { success: true, message: '升星成功' }
       }
       return { success: false, message: '升星失败' }
+    },
+    // 一键合成灵宠
+    batchEvolvePets() {
+      // 1. 获取所有未出战的灵宠
+      const pets = this.items.filter(item => item.type === 'pet' && (!this.activePet || item.id !== this.activePet.id))
+
+      // 2. 按名称和品质分组
+      const groups = {}
+      pets.forEach(pet => {
+        const key = `${pet.name}_${pet.rarity}`
+        if (!groups[key]) groups[key] = []
+        groups[key].push(pet)
+      })
+
+      let totalMerges = 0
+
+      // 3. 对每个组进行递归合成
+      Object.values(groups).forEach(group => {
+        let hasMerged = true
+        while (hasMerged) {
+          hasMerged = false
+          // 按星级分组
+          const starGroups = {}
+          group.forEach(p => {
+            const s = p.star || 0
+            if (!starGroups[s]) starGroups[s] = []
+            starGroups[s].push(p)
+          })
+
+          // 寻找可以合成的对
+          for (const [star, members] of Object.entries(starGroups)) {
+            if (members.length >= 2) {
+              // 排序：优先保留等级高的作为主体
+              members.sort((a, b) => (b.level || 1) - (a.level || 1))
+
+              const target = members[0]
+              const food = members[1]
+
+              // 执行合成
+              const result = this.evolvePet(target, food)
+              if (result.success) {
+                totalMerges++
+                hasMerged = true
+                // 从当前组中移除被消耗的灵宠
+                const foodIdx = group.findIndex(p => p.id === food.id)
+                if (foodIdx > -1) group.splice(foodIdx, 1)
+                // 合成了一对后跳出循环，重新开始检查（因为星级变了）
+                break
+              }
+            }
+          }
+        }
+      })
+
+      if (totalMerges > 0) {
+        this.saveData()
+        return { success: true, message: `一键合成完成，共进行了 ${totalMerges} 次升星` }
+      }
+      return { success: false, message: '没有可合成的灵宠（需要相同名称、品质且星级一致）' }
     }
   }
 })
