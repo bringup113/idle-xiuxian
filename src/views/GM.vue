@@ -130,6 +130,50 @@
             </n-space>
           </n-card>
         </n-tab-pane>
+
+        <!-- 物品与资源 -->
+        <n-tab-pane name="items" tab="物品与资源">
+          <n-card :bordered="false">
+            <n-space vertical>
+              <n-divider title-placement="left">灵草获取</n-divider>
+              <n-form inline label-placement="left">
+                <n-form-item label="选择灵草">
+                  <n-select v-model:value="selectedHerbId" :options="herbOptions" style="width: 200px" />
+                </n-form-item>
+                <n-form-item label="品质">
+                  <n-select v-model:value="selectedHerbQuality" :options="herbQualityOptions" style="width: 120px" />
+                </n-form-item>
+                <n-form-item label="数量">
+                  <n-input-number v-model:value="herbCount" :min="1" style="width: 120px" />
+                </n-form-item>
+                <n-button type="primary" @click="addHerb">获取灵草</n-button>
+              </n-form>
+
+              <n-divider title-placement="left">丹药获取</n-divider>
+              <n-form inline label-placement="left">
+                <n-form-item label="选择丹药">
+                  <n-select v-model:value="selectedPillId" :options="pillOptions" style="width: 200px" />
+                </n-form-item>
+                <n-form-item label="数量">
+                  <n-input-number v-model:value="pillCount" :min="1" style="width: 120px" />
+                </n-form-item>
+                <n-button type="primary" @click="addPill">获取丹药</n-button>
+              </n-form>
+
+              <n-divider title-placement="left">丹方残页 & 功法</n-divider>
+              <n-space>
+                <n-button type="info" @click="addAllPillFragments">所有丹方残页各+99</n-button>
+                <n-button type="info" @click="unlockAllPillRecipes">解锁所有丹方</n-button>
+              </n-space>
+
+              <n-divider title-placement="left">快捷生成 (高品质)</n-divider>
+              <n-space>
+                <n-button type="error" @click="addMythicGear">获取随机仙品装备</n-button>
+                <n-button type="error" @click="addDivinePet">获取随机神品灵宠</n-button>
+              </n-space>
+            </n-space>
+          </n-card>
+        </n-tab-pane>
       </n-tabs>
 
       <div class="gm-footer">
@@ -144,10 +188,12 @@
 
 <script setup>
   import { usePlayerStore } from '../stores/player'
-  import { ref, reactive } from 'vue'
+  import { ref, reactive, computed } from 'vue'
   import { useMessage } from 'naive-ui'
   import { statNameMapping } from '../plugins/stats'
   import { getRealmName, getRealmLength } from '../plugins/realm'
+  import { herbs, herbQualities, getHerbValue } from '../plugins/herbs'
+  import { pillRecipes, calculatePillEffect } from '../plugins/pills'
 
   const playerStore = usePlayerStore()
   const message = useMessage()
@@ -185,6 +231,20 @@
     )
   })
 
+  // 物品获取相关状态
+  const selectedHerbId = ref(herbs[0].id)
+  const selectedHerbQuality = ref('common')
+  const herbCount = ref(1)
+  const selectedPillId = ref(pillRecipes[0].id)
+  const pillCount = ref(1)
+
+  const herbOptions = herbs.map(h => ({ label: h.name, value: h.id }))
+  const herbQualityOptions = Object.entries(herbQualities).map(([key, val]) => ({
+    label: val.name,
+    value: key
+  }))
+  const pillOptions = pillRecipes.map(p => ({ label: p.name, value: p.id }))
+
   // 更新玩家属性
   const updateAttributes = () => {
     try {
@@ -210,6 +270,108 @@
     } catch (error) {
       message.error('更新失败：' + error.message)
     }
+  }
+
+  // 物品获取逻辑
+  const addHerb = () => {
+    const herbTemplate = herbs.find(h => h.id === selectedHerbId.value)
+    if (herbTemplate) {
+      for (let i = 0; i < herbCount.value; i++) {
+        playerStore.herbs.push({
+          ...herbTemplate,
+          quality: selectedHerbQuality.value,
+          value: getHerbValue(herbTemplate, selectedHerbQuality.value),
+          id: Date.now() + Math.random()
+        })
+      }
+      playerStore.saveData()
+      message.success(`已获得 ${herbCount.value} 个${herbQualities[selectedHerbQuality.value].name}${herbTemplate.name}`)
+    }
+  }
+
+  const addPill = () => {
+    const recipe = pillRecipes.find(p => p.id === selectedPillId.value)
+    if (recipe) {
+      const effect = calculatePillEffect(recipe, playerStore.level)
+      for (let i = 0; i < pillCount.value; i++) {
+        playerStore.items.push({
+          id: `${recipe.id}_${Date.now()}_${Math.random()}`,
+          name: recipe.name,
+          description: recipe.description,
+          type: 'pill',
+          effect
+        })
+      }
+      playerStore.saveData()
+      message.success(`已获得 ${pillCount.value} 个${recipe.name}`)
+    }
+  }
+
+  const addAllPillFragments = () => {
+    pillRecipes.forEach(recipe => {
+      playerStore.pillFragments[recipe.id] = (playerStore.pillFragments[recipe.id] || 0) + 99
+    })
+    playerStore.saveData()
+    message.success('所有丹方残页已增加')
+  }
+
+  const unlockAllPillRecipes = () => {
+    pillRecipes.forEach(recipe => {
+      if (!playerStore.pillRecipes.includes(recipe.id)) {
+        playerStore.pillRecipes.push(recipe.id)
+      }
+    })
+    playerStore.saveData()
+    message.success('所有丹方已解锁')
+  }
+
+  // 模拟抽奖中的高品质逻辑
+  const addMythicGear = () => {
+    // 简单模拟 generateEquipment 逻辑
+    const types = ['weapon', 'head', 'body', 'legs', 'feet', 'shoulder', 'hands', 'wrist', 'necklace', 'ring1', 'ring2', 'belt', 'artifact']
+    const type = types[Math.floor(Math.random() * types.length)]
+    const quality = 'mythic'
+    const name = `GM赠送·仙品${type}` // 简化版名称
+    
+    playerStore.items.push({
+      id: Date.now() + Math.random(),
+      name,
+      type,
+      slot: type,
+      quality,
+      level: playerStore.level,
+      stats: { attack: 1000 * playerStore.level, health: 5000 * playerStore.level }, // 简单粗暴的GM数值
+      qualityInfo: { name: '仙品', color: '#e91e63' }
+    })
+    playerStore.saveData()
+    message.success('已获得仙品装备')
+  }
+
+  const addDivinePet = () => {
+    const petNames = ['玄武', '白虎', '朱雀', '青龙']
+    const name = petNames[Math.floor(Math.random() * petNames.length)]
+    playerStore.items.push({
+      id: Date.now() + Math.random(),
+      name,
+      rarity: 'divine',
+      type: 'pet',
+      level: 1,
+      star: 0,
+      combatAttributes: {
+        attack: 500,
+        health: 5000,
+        defense: 200,
+        speed: 100,
+        critRate: 0.2,
+        comboRate: 0.2,
+        counterRate: 0.2,
+        stunRate: 0.2,
+        dodgeRate: 0.2,
+        vampireRate: 0.2
+      }
+    })
+    playerStore.saveData()
+    message.success('已获得神品灵宠')
   }
 
   // 快捷操作
