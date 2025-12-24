@@ -1,0 +1,19 @@
+name: idle-xiuxian-local
+services:
+  idle-xiuxian:
+    container_name: idle-xiuxian-local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: bridge
+    restart: always
+    logging:
+      options:
+        max-size: 1m
+        max-file: '1'
+    ports:
+      - 5153:5152
+    # 指定自定义端口（取消下面的注释并修改端口号和端口映射）
+    # command: ["-p", "8080"]
+    # ports:
+    #   - 8080:8080
