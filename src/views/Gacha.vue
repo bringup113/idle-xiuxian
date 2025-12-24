@@ -907,19 +907,25 @@
 
   // 综合池概率配置
   const getAllPoolProbabilities = () => {
-    const equipProbs = getEquipProbabilities
+    // 引用调整后的概率（已包含心愿单逻辑）
+    const equipProbs = getAdjustedEquipProbabilities()
+    const petProbs = getAdjustedPetProbabilities()
+    
     const totalEquipProb = 0.5 // 装备占50%概率
     const totalPetProb = 0.5 // 灵宠占50%概率
+    
     // 调整装备概率
     const adjustedEquipProbs = {}
     Object.entries(equipProbs).forEach(([quality, prob]) => {
       adjustedEquipProbs[quality] = prob * totalEquipProb
     })
+    
     // 调整灵宠概率
     const adjustedPetProbs = {}
-    Object.entries(petRarities).forEach(([rarity, config]) => {
-      adjustedPetProbs[rarity] = config.probability * totalPetProb
+    Object.entries(petProbs).forEach(([rarity, prob]) => {
+      adjustedPetProbs[rarity] = prob * totalPetProb
     })
+    
     return {
       equipment: adjustedEquipProbs,
       pet: adjustedPetProbs
@@ -957,9 +963,9 @@
     } else {
       // 抽灵宠
       let accumulatedProb = 0
-      for (const [rarity, config] of Object.entries(petRarities)) {
-        accumulatedProb += config.probability
-        if ((random - 0.5) * 2 <= accumulatedProb) {
+      for (const [rarity, probability] of Object.entries(probs.pet)) {
+        accumulatedProb += probability
+        if ((random - 0.5) * 2 <= (accumulatedProb * 2)) {
           const pool = petPool[rarity]
           const pet = pool[Math.floor(Math.random() * pool.length)]
           const upgradeItemCount = {
