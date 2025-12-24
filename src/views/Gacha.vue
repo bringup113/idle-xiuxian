@@ -419,9 +419,20 @@
   import { ref } from 'vue'
   import { useMessage } from 'naive-ui'
   import { Help, HeartOutline, SettingsOutline } from '@vicons/ionicons5'
+  import { 
+    equipmentTypes, 
+    generateEquipment 
+  } from '../plugins/equipment'
+  import { 
+    petRarities, 
+    petPool, 
+    generatePet 
+  } from '../plugins/pets'
 
   const playerStore = usePlayerStore()
   const message = useMessage()
+
+  const equipmentTypes2 = Object.keys(equipmentTypes)
 
   // 抽卡类型
   const gachaType = ref('all') // 'equipment'、'pet' 或 'all'
@@ -450,346 +461,8 @@
     pet: rarity => Math.min(1.0, 0.2 / petRarities[rarity].probability)
   }
 
-  // 装备品质
-  const equipmentQualities = {
-    common: { name: '凡品', color: '#9e9e9e', statMod: 1.0, maxStatMod: 1.5 },
-    uncommon: { name: '下品', color: '#4caf50', statMod: 1.2, maxStatMod: 2.0 },
-    rare: { name: '中品', color: '#2196f3', statMod: 1.5, maxStatMod: 2.5 },
-    epic: { name: '上品', color: '#9c27b0', statMod: 2.0, maxStatMod: 3.0 },
-    legendary: { name: '极品', color: '#ff9800', statMod: 2.5, maxStatMod: 3.5 },
-    mythic: { name: '仙品', color: '#e91e63', statMod: 3.0, maxStatMod: 4.0 }
-  }
 
-  // 装备类型
-  const equipmentTypes = {
-    weapon: {
-      name: '武器',
-      slot: 'weapon',
-      prefixes: ['九天', '太虚', '混沌', '玄天', '紫霄', '青冥', '赤炎', '幽冥']
-    },
-    head: { name: '头部', slot: 'head', prefixes: ['天灵', '玄冥', '紫金', '青玉', '赤霞', '幽月', '星辰', '云霄'] },
-    body: { name: '衣服', slot: 'body', prefixes: ['九霄', '太素', '混元', '玄阳', '紫薇', '青龙', '赤凤', '幽冥'] },
-    legs: { name: '裤子', slot: 'legs', prefixes: ['天罡', '玄武', '紫电', '青云', '赤阳', '幽灵', '星光', '云雾'] },
-    feet: { name: '鞋子', slot: 'feet', prefixes: ['天行', '玄风', '紫霞', '青莲', '赤焰', '幽影', '星步', '云踪'] },
-    shoulder: {
-      name: '肩甲',
-      slot: 'shoulder',
-      prefixes: ['天护', '玄甲', '紫雷', '青锋', '赤羽', '幽岚', '星芒', '云甲']
-    },
-    hands: { name: '手套', slot: 'hands', prefixes: ['天罗', '玄玉', '紫晶', '青钢', '赤金', '幽银', '星铁', '云纹'] },
-    wrist: { name: '护腕', slot: 'wrist', prefixes: ['天绝', '玄铁', '紫玉', '青石', '赤铜', '幽钢', '星晶', '云纱'] },
-    necklace: {
-      name: '项链',
-      slot: 'necklace',
-      prefixes: ['天珠', '玄圣', '紫灵', '青魂', '赤心', '幽魄', '星魂', '云珠']
-    },
-    ring1: { name: '戒指1', slot: 'ring1', prefixes: ['天命', '玄命', '紫命', '青命', '赤命', '幽命', '星命', '云命'] },
-    ring2: { name: '戒指2', slot: 'ring2', prefixes: ['天道', '玄道', '紫道', '青道', '赤道', '幽道', '星道', '云道'] },
-    belt: { name: '腰带', slot: 'belt', prefixes: ['天系', '玄系', '紫系', '青系', '赤系', '幽系', '星系', '云系'] },
-    artifact: {
-      name: '法宝',
-      slot: 'artifact',
-      prefixes: ['天宝', '玄宝', '紫宝', '青宝', '赤宝', '幽宝', '星宝', '云宝']
-    }
-  }
 
-  const equipmentTypes2 = [
-    'weapon',
-    'head',
-    'body',
-    'legs',
-    'feet',
-    'shoulder',
-    'hands',
-    'wrist',
-    'necklace',
-    'ring1',
-    'ring2',
-    'belt',
-    'artifact'
-  ]
-
-  // 生成随机装备
-  const generateEquipment = (level, type = null, quality = null) => {
-    // 随机选择装备类型
-    if (!type) {
-      const types = Object.keys(equipmentTypes)
-      type = types[Math.floor(Math.random() * types.length)]
-    }
-    // 随机选择品质，使用固定概率
-    if (!quality) {
-      const roll = Math.random()
-      if (roll < 0.35) quality = 'common'
-      else if (roll < 0.65) quality = 'uncommon'
-      else if (roll < 0.82) quality = 'rare'
-      else if (roll < 0.93) quality = 'epic'
-      else if (roll < 0.98) quality = 'legendary'
-      else quality = 'mythic'
-    }
-    // 随机生成装备等级（1到玩家当前等级之间）
-    const randomLevel = Math.floor(Math.random() * level) + 1
-    // 基础属性计算
-    const baseStats = {}
-    const qualityMod = equipmentQualities[quality].statMod
-    const levelMod = 1 + randomLevel * 0.1
-    Object.entries(equipmentBaseStats[type]).forEach(([stat, config]) => {
-      const base = config.min + Math.random() * (config.max - config.min)
-      const value = base * qualityMod * levelMod
-      // 对百分比属性进行特殊处理
-      if (
-        ['critRate', 'critDamageBoost', 'dodgeRate', 'vampireRate', 'finalDamageBoost', 'finalDamageReduce'].includes(
-          stat
-        )
-      ) {
-        baseStats[stat] = Math.round(value * 1) / 100 // 保留两位小数
-      } else {
-        baseStats[stat] = Math.round(value)
-      }
-    })
-    return {
-      id: Date.now() + Math.random(),
-      name: generateEquipmentName(type, quality),
-      type, // 确保设置正确的type属性
-      slot: type, // 添加slot属性，用于装备系统
-      quality,
-      level: randomLevel,
-      requiredRealm: randomLevel,
-      stats: baseStats,
-      equipType: type,
-      qualityInfo: equipmentQualities[quality]
-    }
-  }
-  // 生成装备名称
-  const generateEquipmentName = (type, quality) => {
-    const typeInfo = equipmentTypes[type]
-    const prefix = typeInfo.prefixes[Math.floor(Math.random() * typeInfo.prefixes.length)]
-    const suffixes = ['', '·真', '·极', '·道', '·天', '·仙', '·圣', '·神']
-    const suffix =
-      quality === 'mythic'
-        ? suffixes[7]
-        : quality === 'legendary'
-        ? suffixes[6]
-        : quality === 'epic'
-        ? suffixes[5]
-        : quality === 'rare'
-        ? suffixes[4]
-        : quality === 'uncommon'
-        ? suffixes[3]
-        : suffixes[0]
-    return `${prefix}${typeInfo.name}${suffix}`
-  }
-
-  // 装备基础属性
-  const equipmentBaseStats = {
-    weapon: {
-      attack: { name: '攻击', min: 10, max: 20 },
-      critRate: { name: '暴击率', min: 0.05, max: 0.1 },
-      critDamageBoost: { name: '暴击伤害', min: 0.1, max: 0.3 }
-    },
-    head: {
-      defense: { name: '防御', min: 5, max: 10 },
-      health: { name: '生命', min: 50, max: 100 },
-      stunResist: { name: '抗眩晕', min: 0.05, max: 0.1 }
-    },
-    body: {
-      defense: { name: '防御', min: 8, max: 15 },
-      health: { name: '生命', min: 80, max: 150 },
-      finalDamageReduce: { name: '最终减伤', min: 0.05, max: 0.1 }
-    },
-    legs: {
-      defense: { name: '防御', min: 6, max: 12 },
-      speed: { name: '速度', min: 5, max: 10 },
-      dodgeRate: { name: '闪避率', min: 0.05, max: 0.1 }
-    },
-    feet: {
-      defense: { name: '防御', min: 4, max: 8 },
-      speed: { name: '速度', min: 8, max: 15 },
-      dodgeRate: { name: '闪避率', min: 0.05, max: 0.1 }
-    },
-    shoulder: {
-      defense: { name: '防御', min: 5, max: 10 },
-      health: { name: '生命', min: 40, max: 80 },
-      counterRate: { name: '反击率', min: 0.05, max: 0.1 }
-    },
-    hands: {
-      attack: { name: '攻击', min: 5, max: 10 },
-      critRate: { name: '暴击率', min: 0.03, max: 0.08 },
-      comboRate: { name: '连击率', min: 0.05, max: 0.1 }
-    },
-    wrist: {
-      defense: { name: '防御', min: 3, max: 8 },
-      counterRate: { name: '反击率', min: 0.05, max: 0.1 },
-      vampireRate: { name: '吸血率', min: 0.05, max: 0.1 }
-    },
-    necklace: {
-      health: { name: '生命', min: 60, max: 120 },
-      healBoost: { name: '强化治疗', min: 0.1, max: 0.2 },
-      spiritRate: { name: '灵力获取', min: 0.1, max: 0.2 }
-    },
-    ring1: {
-      attack: { name: '攻击', min: 5, max: 10 },
-      critDamageBoost: { name: '暴击伤害', min: 0.1, max: 0.2 },
-      finalDamageBoost: { name: '最终增伤', min: 0.05, max: 0.1 }
-    },
-    ring2: {
-      defense: { name: '防御', min: 5, max: 10 },
-      critDamageReduce: { name: '爆伤减免', min: 0.1, max: 0.2 },
-      resistanceBoost: { name: '抗性提升', min: 0.05, max: 0.1 }
-    },
-    belt: {
-      health: { name: '生命', min: 40, max: 80 },
-      defense: { name: '防御', min: 4, max: 8 },
-      combatBoost: { name: '战斗属性', min: 0.05, max: 0.1 }
-    },
-    artifact: {
-      attack: { name: '攻击力', min: 0.1, max: 0.3 },
-      critRate: { name: '暴击率', min: 0.1, max: 0.3 },
-      comboRate: { name: '连击率', min: 0.1, max: 0.3 }
-    }
-  }
-
-  // 灵宠品质配置
-  const petRarities = {
-    divine: {
-      name: '神品',
-      color: '#FF0000',
-      probability: 0.002,
-      essenceBonus: 50
-    },
-    celestial: {
-      name: '仙品',
-      color: '#FFD700',
-      probability: 0.0581,
-      essenceBonus: 30
-    },
-    mystic: {
-      name: '玄品',
-      color: '#9932CC',
-      probability: 0.1601,
-      essenceBonus: 20
-    },
-    spiritual: {
-      name: '灵品',
-      color: '#1E90FF',
-      probability: 0.2801,
-      essenceBonus: 10
-    },
-    mortal: {
-      name: '凡品',
-      color: '#32CD32',
-      probability: 0.4997,
-      essenceBonus: 5
-    }
-  }
-
-  // 灵宠池配置
-  const petPool = {
-    divine: [
-      { name: '玄武', description: '北方守护神兽' },
-      { name: '白虎', description: '西方守护神兽' },
-      { name: '朱雀', description: '南方守护神兽' },
-      { name: '青龙', description: '东方守护神兽' },
-      { name: '应龙', description: '上古神龙，掌控风雨' },
-      { name: '麒麟', description: '祥瑞之兽，通晓万物' },
-      { name: '饕餮', description: '贪婪之兽，吞噬万物，象征无尽的欲望' },
-      { name: '穷奇', description: '邪恶之兽，背信弃义，象征混乱与背叛' },
-      { name: '梼杌', description: '凶暴之兽，顽固不化，象征无法驯服的野性' },
-      { name: '混沌', description: '无序之兽，无形无相，象征原始的混乱' }
-    ],
-    celestial: [
-      { name: '囚牛', description: '龙之长子，喜好音乐，常立于琴头' },
-      { name: '睚眦', description: '龙之次子，性格刚烈，嗜杀好斗，常刻于刀剑之上' },
-      { name: '嘲风', description: '龙之三子，形似兽，喜好冒险，常立于殿角' },
-      { name: '蒲牢', description: '龙之四子，形似龙而小，性好鸣，常铸于钟上' },
-      { name: '狻犴', description: '龙之五子，形似狮子，喜静好坐，常立于香炉' },
-      { name: '霸下', description: '龙之六子，形似龟，力大无穷，常背负石碑' },
-      { name: '狴犴', description: '龙之七子，形似虎，明辨是非，常立于狱门' },
-      { name: '负屃', description: '龙之八子，形似龙，雅好诗文，常盘于碑顶' },
-      { name: '螭吻', description: '龙之九子，形似鱼，能吞火，常立于屋脊' }
-    ],
-    mystic: [
-      { name: '火凤凰', description: '浴火重生的永恒之鸟' },
-      { name: '雷鹰', description: '雷电的猛禽' },
-      { name: '冰狼', description: '冰原霸主' },
-      { name: '岩龟', description: '坚不可摧的守护者' }
-    ],
-    spiritual: [
-      { name: '玄龟', description: '擅长防御的水系灵宠' },
-      { name: '风隼', description: '速度极快的飞行灵宠' },
-      { name: '地甲', description: '坚固的大地守护者' },
-      { name: '云豹', description: '敏捷的猎手' }
-    ],
-    mortal: [
-      { name: '灵猫', description: '敏捷的小型灵宠' },
-      { name: '幻蝶', description: '美丽的蝴蝶灵宠' },
-      { name: '火鼠', description: '活泼的啮齿类灵宠' },
-      { name: '草兔', description: '温顺的兔类灵宠' }
-    ]
-  }
-
-  const getRarityMultiplier = rarity => {
-    const multipliers = {
-      divine: { base: 5, percent: 2 },
-      celestial: { base: 4, percent: 1.8 },
-      mystic: { base: 3, percent: 1.6 },
-      spiritual: { base: 2, percent: 1.4 },
-      mortal: { base: 1, percent: 1 }
-    }
-    return multipliers[rarity] || multipliers.mortal
-  }
-
-  const generateRandomValue = (min, max, isPercentage = false) => {
-    const value = min + Math.random() * (max - min)
-    return isPercentage ? Math.min(1, Math.round(value * 100) / 100) : Math.round(value)
-  }
-
-  const combatAttributes = rarity => {
-    const multiplier = getRarityMultiplier(rarity)
-    // 基础属性配置
-    const baseStats = {
-      // 基础属性
-      attack: { min: 10, max: 15, useBase: true },
-      health: { min: 100, max: 120, useBase: true },
-      defense: { min: 5, max: 8, useBase: true },
-      speed: { min: 10, max: 15, useBase: true, multiplier: 0.6 },
-      // 战斗属性
-      critRate: { min: 0.05, max: 0.1, isPercentage: true }, // 暴击率
-      comboRate: { min: 0.05, max: 0.1, isPercentage: true }, // 连击率
-      counterRate: { min: 0.05, max: 0.1, isPercentage: true }, // 反击率
-      stunRate: { min: 0.05, max: 0.1, isPercentage: true }, // 眩晕率
-      dodgeRate: { min: 0.05, max: 0.1, isPercentage: true }, // 闪避率
-      vampireRate: { min: 0.05, max: 0.1, isPercentage: true }, // 吸血率
-      // 战斗抗性
-      critResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗暴击
-      comboResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗连击
-      counterResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗反击
-      stunResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗眩晕
-      dodgeResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗闪避
-      vampireResist: { min: 0.05, max: 0.1, isPercentage: true }, // 抗吸血
-      // 特殊属性
-      healBoost: { min: 0.05, max: 0.1, isPercentage: true }, // 强化治疗
-      critDamageBoost: { min: 0.05, max: 0.1, isPercentage: true }, // 强化爆伤
-      critDamageReduce: { min: 0.05, max: 0.1, isPercentage: true }, // 弱化爆伤
-      finalDamageBoost: { min: 0.05, max: 0.1, isPercentage: true }, // 最终增伤
-      finalDamageReduce: { min: 0.05, max: 0.1, isPercentage: true }, // 最终减伤
-      combatBoost: { min: 0.05, max: 0.1, isPercentage: true }, // 战斗属性提升
-      resistanceBoost: { min: 0.05, max: 0.1, isPercentage: true } // 战斗抗性提升
-    }
-    const attributes = {}
-    // 计算每个属性的值
-    Object.entries(baseStats).forEach(([key, config]) => {
-      if (config.isPercentage) {
-        // 百分比属性使用percent倍率
-        attributes[key] = generateRandomValue(config.min * multiplier.percent, config.max * multiplier.percent, true)
-      } else {
-        // 基础属性使用base倍率
-        const baseMultiplier = config.useBase ? multiplier.base : multiplier.percent
-        const finalMultiplier = config.multiplier ? baseMultiplier * config.multiplier : baseMultiplier
-        attributes[key] = generateRandomValue(config.min * finalMultiplier, config.max * finalMultiplier)
-      }
-    })
-    return attributes
-  }
 
   // 根据境界调整装备品质概率
   const getEquipProbabilities = {
@@ -865,44 +538,18 @@
     return generateEquipment(playerStore.level || 1, null, 'common')
   }
 
-  // 修改抽取单个灵宠的函数
+  // 抽取单品灵宠
   const drawSinglePet = () => {
+    const probs = getAdjustedPetProbabilities()
     const random = Math.random()
     let accumulatedProb = 0
-    const currentProbs = getAdjustedPetProbabilities()
-    for (const [rarity, probability] of Object.entries(currentProbs)) {
+    for (const [rarity, probability] of Object.entries(probs)) {
       accumulatedProb += probability
       if (random <= accumulatedProb) {
-        const pool = petPool[rarity]
-        const pet = pool[Math.floor(Math.random() * pool.length)]
-        const upgradeItemCount = {
-          divine: 5,
-          celestial: 4,
-          mystic: 3,
-          spiritual: 2,
-          mortal: 1
-        }
-        return {
-          ...pet,
-          rarity,
-          type: 'pet',
-          quality: {
-            strength: Math.floor(Math.random() * 10) + 1,
-            agility: Math.floor(Math.random() * 10) + 1,
-            intelligence: Math.floor(Math.random() * 10) + 1,
-            constitution: Math.floor(Math.random() * 10) + 1
-          },
-          power: 0,
-          experience: 0,
-          maxExperience: 100,
-          level: 1,
-          star: 0,
-          upgradeItems: upgradeItemCount[rarity] || 1,
-          combatAttributes: combatAttributes(rarity)
-        }
+        return generatePet(rarity)
       }
     }
-    return null
+    return generatePet('mortal')
   }
 
   // 综合池概率配置
@@ -966,56 +613,11 @@
       for (const [rarity, probability] of Object.entries(probs.pet)) {
         accumulatedProb += probability
         if ((random - 0.5) * 2 <= (accumulatedProb * 2)) {
-          const pool = petPool[rarity]
-          const pet = pool[Math.floor(Math.random() * pool.length)]
-          const upgradeItemCount = {
-            divine: 5,
-            celestial: 4,
-            mystic: 3,
-            spiritual: 2,
-            mortal: 1
-          }
-          return {
-            ...pet,
-            rarity,
-            type: 'pet',
-            quality: {
-              strength: Math.floor(Math.random() * 10) + 1,
-              agility: Math.floor(Math.random() * 10) + 1,
-              intelligence: Math.floor(Math.random() * 10) + 1,
-              constitution: Math.floor(Math.random() * 10) + 1
-            },
-            power: 0,
-            experience: 0,
-            maxExperience: 100,
-            level: 1,
-            star: 0,
-            upgradeItems: upgradeItemCount[rarity] || 1,
-            combatAttributes: combatAttributes(rarity)
-          }
+          return generatePet(rarity)
         }
       }
       // 如果没有命中任何概率，返回最低品质的灵宠
-      const pool = petPool.mortal
-      const pet = pool[Math.floor(Math.random() * pool.length)]
-      return {
-        ...pet,
-        rarity: 'mortal',
-        type: 'pet',
-        quality: {
-          strength: Math.floor(Math.random() * 10) + 1,
-          agility: Math.floor(Math.random() * 10) + 1,
-          intelligence: Math.floor(Math.random() * 10) + 1,
-          constitution: Math.floor(Math.random() * 10) + 1
-        },
-        power: 0,
-        experience: 0,
-        maxExperience: 100,
-        level: 1,
-        star: 0,
-        upgradeItems: 1,
-        combatAttributes: combatAttributes('mortal')
-      }
+      return generatePet('mortal')
     }
   }
 

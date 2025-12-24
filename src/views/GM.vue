@@ -169,7 +169,9 @@
               <n-divider title-placement="left">快捷生成 (高品质)</n-divider>
               <n-space>
                 <n-button type="error" @click="addMythicGear">获取随机仙品装备</n-button>
+                <n-button type="error" @click="addPerfectGear">获取随机顶级仙品</n-button>
                 <n-button type="error" @click="addDivinePet">获取随机神品灵宠</n-button>
+                <n-button type="error" @click="addPerfectPet">获取顶级神品灵宠</n-button>
               </n-space>
             </n-space>
           </n-card>
@@ -194,6 +196,8 @@
   import { getRealmName, getRealmLength } from '../plugins/realm'
   import { herbs, herbQualities, getHerbValue } from '../plugins/herbs'
   import { pillRecipes, calculatePillEffect } from '../plugins/pills'
+  import { generateEquipment } from '../plugins/equipment'
+  import { generatePet } from '../plugins/pets'
 
   const playerStore = usePlayerStore()
   const message = useMessage()
@@ -327,51 +331,37 @@
 
   // 模拟抽奖中的高品质逻辑
   const addMythicGear = () => {
-    // 简单模拟 generateEquipment 逻辑
-    const types = ['weapon', 'head', 'body', 'legs', 'feet', 'shoulder', 'hands', 'wrist', 'necklace', 'ring1', 'ring2', 'belt', 'artifact']
-    const type = types[Math.floor(Math.random() * types.length)]
-    const quality = 'mythic'
-    const name = `GM赠送·仙品${type}` // 简化版名称
+    // 使用统一的装备生成函数，确保名字和属性正规
+    const gear = generateEquipment(playerStore.level, null, 'mythic')
     
-    playerStore.items.push({
-      id: Date.now() + Math.random(),
-      name,
-      type,
-      slot: type,
-      quality,
-      level: playerStore.level,
-      stats: { attack: 1000 * playerStore.level, health: 5000 * playerStore.level }, // 简单粗暴的GM数值
-      qualityInfo: { name: '仙品', color: '#e91e63' }
-    })
+    playerStore.items.push(gear)
     playerStore.saveData()
-    message.success('已获得仙品装备')
+    message.success('已获得正规格式的仙品装备')
+  }
+
+  const addPerfectGear = () => {
+    // 生成满属性装备
+    const gear = generateEquipment(playerStore.level, null, 'mythic', true)
+    
+    playerStore.items.push(gear)
+    playerStore.saveData()
+    message.success('已获得满属性顶级仙品装备')
   }
 
   const addDivinePet = () => {
-    const petNames = ['玄武', '白虎', '朱雀', '青龙']
-    const name = petNames[Math.floor(Math.random() * petNames.length)]
-    playerStore.items.push({
-      id: Date.now() + Math.random(),
-      name,
-      rarity: 'divine',
-      type: 'pet',
-      level: 1,
-      star: 0,
-      combatAttributes: {
-        attack: 500,
-        health: 5000,
-        defense: 200,
-        speed: 100,
-        critRate: 0.2,
-        comboRate: 0.2,
-        counterRate: 0.2,
-        stunRate: 0.2,
-        dodgeRate: 0.2,
-        vampireRate: 0.2
-      }
-    })
+    // 使用统一生成逻辑
+    const pet = generatePet('divine')
+    playerStore.items.push(pet)
     playerStore.saveData()
     message.success('已获得神品灵宠')
+  }
+
+  const addPerfectPet = () => {
+    // 生成满属性灵宠
+    const pet = generatePet('divine', true)
+    playerStore.items.push(pet)
+    playerStore.saveData()
+    message.success('已获得满属性顶级神品灵宠')
   }
 
   // 快捷操作
